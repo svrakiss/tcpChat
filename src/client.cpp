@@ -4,17 +4,15 @@
 
 using boost::asio::ip::tcp;
 using namespace std;
+typedef boost::shared_ptr<tcp::socket> sockPtr;
 class Client{
     private:
-    tcp::socket mySock_;
+    boost::shared_ptr<tcp::socket> mySock_;
 public:
-    Client(boost::asio::io_service& io_service) :mySock_(io_service){
+    Client( sockPtr socket) :mySock_(socket){
     }
     ~Client(){
 
-    }
-    tcp::socket& socket(){
-        return mySock_;
     }
     void read(){
             boost::array<char, 256> buf;
@@ -75,8 +73,8 @@ int main(int argc, char* argv[])
     // This keeps the client program independent of a specific IP version. 
     // The boost::asio::connect() function does this for us automatically.
     // tcp::endpoint connectionEndpoint(endpoint_iterator->address(),argv[2])
-    tcp::socket socket(io_service);
-    boost::asio::connect(socket, endpoint_iterator);
+    sockPtr sharedSocket(new tcp::socket(io_service));
+    boost::asio::connect(*(sharedSocket.get()), endpoint_iterator);
     // tcp::iostream yo
     // The connection is open. All we need to do now is read the response from the daytime service.
 
@@ -84,15 +82,15 @@ int main(int argc, char* argv[])
       boost::array<char, 256> buf;
       boost::system::error_code error;
 // while()
-Client charlie(io_service);
+Client charlie(sharedSocket);
     for (;;)
     {
       // The boost::asio::buffer() function automatically determines 
       // the size of the array to help prevent buffer overruns.
     //   size_t len = socket.read_some(boost::asio::buffer(buf), error);
-      
+    //   charlie.read();
             // std::cout.write(buf.data(), len);
-      boost::asio::write(socket,boost::asio::buffer("yo\n"),error);
+      charlie.write();
         // pthread_create()
       // When the server closes the connection, 
       // the ip::tcp::socket::read_some() function will exit with the boost::asio::error::eof error, 
