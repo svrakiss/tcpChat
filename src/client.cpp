@@ -17,7 +17,7 @@ public:
     void read(){
             boost::array<char, 256> buf;
       boost::system::error_code error;
-      size_t len = boost::asio::read(mySock_,boost::asio::buffer(buf));
+      size_t len = boost::asio::read(*mySock_,boost::asio::buffer(buf));
       std::cout.write(buf.data(), len);
             if (error == boost::asio::error::eof)
         std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
@@ -26,7 +26,7 @@ public:
     }
     void write(){
     boost::system::error_code error;
-    boost::asio::write(mySock_,boost::asio::buffer("yo\n"),error);
+    boost::asio::write(*mySock_,boost::asio::buffer("yo\n"),error);
               if (error == boost::asio::error::eof)
         std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
       else if (error)
