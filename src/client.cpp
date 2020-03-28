@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     if (argc !=3)
     {
         if(argc !=2){
-      std::cerr << "Usage: client <host>" << std::endl;
+      std::cerr << "Usage: client <host> <port>" << std::endl;
       return 1;
         }
         serv_port = "4567";
@@ -45,18 +45,23 @@ int main(int argc, char* argv[])
     // tcp::endpoint connectionEndpoint(endpoint_iterator->address(),argv[2])
     tcp::socket socket(io_service);
     boost::asio::connect(socket, endpoint_iterator);
-
+    // tcp::iostream yo
     // The connection is open. All we need to do now is read the response from the daytime service.
+
+      // We use a boost::array to hold the received data. 
+      boost::array<char, 256> buf;
+      boost::system::error_code error;
+// while()
+Chatter charlie(io_service);
     for (;;)
     {
-      // We use a boost::array to hold the received data. 
-      boost::array<char, 128> buf;
-      boost::system::error_code error;
-
       // The boost::asio::buffer() function automatically determines 
       // the size of the array to help prevent buffer overruns.
-      size_t len = socket.read_some(boost::asio::buffer(buf), error);
-
+    //   size_t len = socket.read_some(boost::asio::buffer(buf), error);
+      
+            // std::cout.write(buf.data(), len);
+      boost::asio::write(socket,boost::asio::buffer("yo\n"),error);
+        // pthread_create()
       // When the server closes the connection, 
       // the ip::tcp::socket::read_some() function will exit with the boost::asio::error::eof error, 
       // which is how we know to exit the loop.
@@ -65,7 +70,6 @@ int main(int argc, char* argv[])
       else if (error)
         throw boost::system::system_error(error); // Some other error.
 
-      std::cout.write(buf.data(), len);
     }
   }
   // handle any exceptions that may have been thrown.
@@ -76,3 +80,36 @@ int main(int argc, char* argv[])
 
   return 0;
 }
+
+class Chatter{
+    private:
+    tcp::socket mySock_;
+public:
+    Chatter(boost::asio::io_service& io_service) :mySock_(io_service){
+    }
+    ~Chatter(){
+
+    }
+    tcp::socket& socket(){
+        return mySock_;
+    }
+    void read(){
+            boost::array<char, 256> buf;
+      boost::system::error_code error;
+      size_t len = boost::asio::read(mySock_,boost::asio::buffer(buf));
+      std::cout.write(buf.data(), len);
+            if (error == boost::asio::error::eof)
+        std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
+      else if (error)
+        throw boost::system::system_error(error); // Some other error.
+    }
+    void write(){
+    boost::system::error_code error;
+    boost::asio::write(mySock_,boost::asio::buffer("yo\n"),error);
+              if (error == boost::asio::error::eof)
+        std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
+      else if (error)
+        throw boost::system::system_error(error); // Some other error.
+
+    }
+};
