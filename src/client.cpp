@@ -4,6 +4,38 @@
 
 using boost::asio::ip::tcp;
 using namespace std;
+class Client{
+    private:
+    tcp::socket mySock_;
+public:
+    Client(boost::asio::io_service& io_service) :mySock_(io_service){
+    }
+    ~Client(){
+
+    }
+    tcp::socket& socket(){
+        return mySock_;
+    }
+    void read(){
+            boost::array<char, 256> buf;
+      boost::system::error_code error;
+      size_t len = boost::asio::read(mySock_,boost::asio::buffer(buf));
+      std::cout.write(buf.data(), len);
+            if (error == boost::asio::error::eof)
+        std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
+      else if (error)
+        throw boost::system::system_error(error); // Some other error.
+    }
+    void write(){
+    boost::system::error_code error;
+    boost::asio::write(mySock_,boost::asio::buffer("yo\n"),error);
+              if (error == boost::asio::error::eof)
+        std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
+      else if (error)
+        throw boost::system::system_error(error); // Some other error.
+
+    }
+};
 int main(int argc, char* argv[])
 {
   std::string serv_port;
@@ -52,7 +84,7 @@ int main(int argc, char* argv[])
       boost::array<char, 256> buf;
       boost::system::error_code error;
 // while()
-Chatter charlie(io_service);
+Client charlie(io_service);
     for (;;)
     {
       // The boost::asio::buffer() function automatically determines 
@@ -81,35 +113,3 @@ Chatter charlie(io_service);
   return 0;
 }
 
-class Chatter{
-    private:
-    tcp::socket mySock_;
-public:
-    Chatter(boost::asio::io_service& io_service) :mySock_(io_service){
-    }
-    ~Chatter(){
-
-    }
-    tcp::socket& socket(){
-        return mySock_;
-    }
-    void read(){
-            boost::array<char, 256> buf;
-      boost::system::error_code error;
-      size_t len = boost::asio::read(mySock_,boost::asio::buffer(buf));
-      std::cout.write(buf.data(), len);
-            if (error == boost::asio::error::eof)
-        std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
-      else if (error)
-        throw boost::system::system_error(error); // Some other error.
-    }
-    void write(){
-    boost::system::error_code error;
-    boost::asio::write(mySock_,boost::asio::buffer("yo\n"),error);
-              if (error == boost::asio::error::eof)
-        std::cout << "time to die"<<std::endl; // Connection closed cleanly by peer.
-      else if (error)
-        throw boost::system::system_error(error); // Some other error.
-
-    }
-};
