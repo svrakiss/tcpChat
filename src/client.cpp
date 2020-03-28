@@ -95,9 +95,9 @@ int main(int argc, char *argv[])
             // The boost::asio::buffer() function automatically determines
             // the size of the array to help prevent buffer overruns.
             //   size_t len = socket.read_some(boost::asio::buffer(buf), error);
-            charlie.read();
             // std::cout.write(buf.data(), len);
-            //   charlie.write();
+            charlie.write();
+            jimmy.read();
             // pthread_create()
             // When the server closes the connection,
             // the ip::tcp::socket::read_some() function will exit with the boost::asio::error::eof error,
