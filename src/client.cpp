@@ -90,23 +90,28 @@ int main(int argc, char *argv[])
         boost::system::error_code error;
         // while()
         Chatter charlie(sharedSocket), jimmy(sharedSocket);
-        for (;;)
-        {
-            // The boost::asio::buffer() function automatically determines
-            // the size of the array to help prevent buffer overruns.
-            //   size_t len = socket.read_some(boost::asio::buffer(buf), error);
-            // std::cout.write(buf.data(), len);
-            charlie.write();
-            jimmy.read();
-            // pthread_create()
-            // When the server closes the connection,
-            // the ip::tcp::socket::read_some() function will exit with the boost::asio::error::eof error,
-            // which is how we know to exit the loop.
-            if (error == boost::asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
-                throw boost::system::system_error(error); // Some other error.
-        }
+        pthread_t t1, t2;
+        pthread_create(&t1, NULL, &charlie.write, NULL);
+        pthread_create(&t2, NULL, &jimmy.read, NULL);
+        pthread_join(t1, NULL);
+        pthread_join(t2, NULL);
+        // for (;;)
+        // {
+        // The boost::asio::buffer() function automatically determines
+        // the size of the array to help prevent buffer overruns.
+        //   size_t len = socket.read_some(boost::asio::buffer(buf), error);
+        // std::cout.write(buf.data(), len);
+        // charlie.write();
+        // jimmy.read();
+        // pthread_create()
+        // When the server closes the connection,
+        // the ip::tcp::socket::read_some() function will exit with the boost::asio::error::eof error,
+        // which is how we know to exit the loop.
+        // if (error == boost::asio::error::eof)
+        //     break; // Connection closed cleanly by peer.
+        // else if (error)
+        //     throw boost::system::system_error(error); // Some other error.
+        // }
     }
     // handle any exceptions that may have been thrown.
     catch (std::exception &e)
