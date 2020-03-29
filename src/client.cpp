@@ -2,7 +2,7 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <thread>
-#include "chatter.h"
+#include "chatter.hpp"
 using boost::asio::ip::tcp;
 using namespace std;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
         boost::system::error_code error;
         
 
-        Chatter charlie(sharedSocket,userName);
-        charlie.run();
+        Chatter::pointer chtPtr=Chatter::create(sharedSocket,userName);
+        chtPtr->run();
 
     }
     // handle any exceptions that may have been thrown.
