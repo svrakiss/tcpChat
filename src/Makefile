@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-I../includes -pthread -lboost_system -std=c++11
+CFLAGS=-I../includes -pthread -lboost_system -std=c++17
 # DEPS = chatter.h
 OBJ = chatter.o client.o
 OBJ2 = chatter.o tcpServer.o

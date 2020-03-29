@@ -26,7 +26,7 @@ private:
         Chatter::pointer spongeBoyMeBob = Chatter::create(acceptor_.get_io_service(),userName);
         acceptor_.async_accept(*spongeBoyMeBob->socket(), boost::bind(&tcpServer::handleAccept, this, spongeBoyMeBob, boost::asio::placeholders::error));
     }
-    void handleAccept(Chatter::pointer chatter, boost::system::error_code& error)
+    void handleAccept(Chatter::pointer chatter, const boost::system::error_code& error)
     {
         if(!error){
             chatter->run();
