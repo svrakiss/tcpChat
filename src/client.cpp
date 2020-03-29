@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-
+#include <thread>
 using boost::asio::ip::tcp;
 using namespace std;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
@@ -89,12 +89,22 @@ int main(int argc, char *argv[])
         boost::array<char, 256> buf;
         boost::system::error_code error;
         // while()
+
         Chatter charlie(sharedSocket), jimmy(sharedSocket);
-        pthread_t t1, t2;
-        pthread_create(&t1, NULL, &charlie.write, NULL);
-        pthread_create(&t2, NULL, &jimmy.read, NULL);
-        pthread_join(t1, NULL);
-        pthread_join(t2, NULL);
+        thread t1, t2;
+
+        t1 = thread([&jimmy]() {
+            cout << "yessss" << endl;
+            jimmy.write();
+            return NULL;
+        });
+        t2 = thread([&charlie]() {
+            cout << "nooooo" << endl;
+            charlie.read();
+            return NULL;
+        });
+        t1.join();
+        t2.join();
         // for (;;)
         // {
         // The boost::asio::buffer() function automatically determines
