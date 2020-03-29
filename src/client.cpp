@@ -33,8 +33,8 @@ public:
     }
     void write()
     {
-        boost::array<char, 256> buf;
-
+        string buf;
+        getline(cin,buf);
         boost::system::error_code error;
         boost::asio::write(*mySock_, boost::asio::buffer(buf), error);
         if (error == boost::asio::error::eof)
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
             serv_port = argv[2];
         }
         string userName;
-        cout << "Please enter a user name:"<<endl;
+        cout << "Please enter a user name:";
         getline(cin,userName);
         // Any program that uses asio need to have at least one io_service object
         boost::asio::io_service io_service;
