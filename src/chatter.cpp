@@ -32,6 +32,7 @@ void Chatter::read()
 void Chatter::write()
 {
     string buf;
+    cout<< userName << "> ";
     getline(cin, buf);
     boost::system::error_code error;
     boost::asio::write(*mySock_, boost::asio::buffer(buf), error);
