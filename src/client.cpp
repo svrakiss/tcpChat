@@ -59,26 +59,9 @@ int main(int argc, char *argv[])
         boost::system::error_code error;
         
 
-        Chatter charlie(sharedSocket,userName), jimmy(sharedSocket,userName);
-        thread t1, t2;
+        Chatter charlie(sharedSocket,userName);
+        charlie.run();
 
-        t1 = thread([&jimmy]() {
-            cout << "yessss" << endl;
-            while (true)
-            {
-
-                jimmy.write();
-            }
-        });
-        t2 = thread([&charlie]() {
-            cout << "nooooo" << endl;
-            while (true)
-            {
-                charlie.read();
-            }
-        });
-        t1.join();
-        t2.join();
     }
     // handle any exceptions that may have been thrown.
     catch (std::exception &e)
