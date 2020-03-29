@@ -9,13 +9,16 @@ class Chatter
 {
 private:
     boost::shared_ptr<tcp::socket> mySock_;
+    string userName;
 
 public:
-    Chatter(sockPtr socket) : mySock_(socket)
+    Chatter(sockPtr socket) : mySock_(socket), userName("Bob")
     {
     }
+    Chatter(sockPtr socket, string name) : mySock_(socket), userName(name) {}
     ~Chatter()
     {
+        mySock_.reset();
     }
     void read()
     {
@@ -30,8 +33,10 @@ public:
     }
     void write()
     {
+        boost::array<char, 256> buf;
+
         boost::system::error_code error;
-        boost::asio::write(*mySock_, boost::asio::buffer("yo\n"), error);
+        boost::asio::write(*mySock_, boost::asio::buffer(buf), error);
         if (error == boost::asio::error::eof)
             std::cout << "time to die" << std::endl; // Connection closed cleanly by peer.
         else if (error)
@@ -57,7 +62,9 @@ int main(int argc, char *argv[])
         {
             serv_port = argv[2];
         }
-
+        string userName;
+        cout << "Please enter a user name:"<<endl;
+        getline(cin,userName);
         // Any program that uses asio need to have at least one io_service object
         boost::asio::io_service io_service;
 
@@ -86,42 +93,29 @@ int main(int argc, char *argv[])
         // The connection is open. All we need to do now is read the response from the daytime service.
 
         // We use a boost::array to hold the received data.
-        boost::array<char, 256> buf;
         boost::system::error_code error;
-        // while()
+        
 
-        Chatter charlie(sharedSocket), jimmy(sharedSocket);
+        Chatter charlie(sharedSocket,userName), jimmy(sharedSocket,userName);
         thread t1, t2;
 
         t1 = thread([&jimmy]() {
             cout << "yessss" << endl;
-            while(true){
-            jimmy.write();}
+            while (true)
+            {
+
+                jimmy.write();
+            }
         });
         t2 = thread([&charlie]() {
             cout << "nooooo" << endl;
-            while(true){
-            charlie.read();}
+            while (true)
+            {
+                charlie.read();
+            }
         });
         t1.join();
         t2.join();
-        // for (;;)
-        // {
-        // The boost::asio::buffer() function automatically determines
-        // the size of the array to help prevent buffer overruns.
-        //   size_t len = socket.read_some(boost::asio::buffer(buf), error);
-        // std::cout.write(buf.data(), len);
-        // charlie.write();
-        // jimmy.read();
-        // pthread_create()
-        // When the server closes the connection,
-        // the ip::tcp::socket::read_some() function will exit with the boost::asio::error::eof error,
-        // which is how we know to exit the loop.
-        // if (error == boost::asio::error::eof)
-        //     break; // Connection closed cleanly by peer.
-        // else if (error)
-        //     throw boost::system::system_error(error); // Some other error.
-        // }
     }
     // handle any exceptions that may have been thrown.
     catch (std::exception &e)
