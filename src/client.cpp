@@ -4,7 +4,7 @@
 #include <boost/thread.hpp>
 #include "chatter.hpp"
 using boost::asio::ip::tcp;
-using namespace std;
+// using namespace std;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
 
 int main(int argc, char *argv[])
@@ -26,9 +26,9 @@ int main(int argc, char *argv[])
         {
             serv_port = argv[2];
         }
-        string userName;
-        cout << "Please enter a user name:";
-        getline(cin,userName);
+        std::string userName;
+        std::cout << "Please enter a user name:";
+        std::getline(std::cin,userName);
         // Any program that uses asio need to have at least one io_service object
         boost::asio::io_service io_service;
 

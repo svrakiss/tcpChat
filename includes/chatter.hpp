@@ -1,6 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/array.hpp>
 using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
 
@@ -21,13 +22,16 @@ public:
 private:
     sockPtr mySock_;
     std::string userName;
+    boost::array<char,256> buf;
 
 public:
     Chatter(sockPtr, std::string);
     Chatter(sockPtr);
     ~Chatter();
     sockPtr socket();
-    void read();
+    void read(const boost::system::error_code &,std::size_t);
     void write(const boost::system::error_code &, std::size_t);
     void run();
+    void die();
+    boost::array<char,256>& getBuf();
 };
