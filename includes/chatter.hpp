@@ -22,16 +22,18 @@ public:
 private:
     sockPtr mySock_;
     std::string userName;
-    boost::array<char,256> buf;
+    boost::array<char, 256> buf;
+    boost::array<char, 256> sentMsg;
 
 public:
     Chatter(sockPtr, std::string);
     Chatter(sockPtr);
     ~Chatter();
     sockPtr socket();
-    void read(const boost::system::error_code &,std::size_t);
+    void read(const boost::system::error_code &, std::size_t);
     void write(const boost::system::error_code &, std::size_t);
     void run();
     void die();
-    boost::array<char,256>& getBuf();
+    boost::array<char, 256> &getBuf();
+    boost::array<char,256>& getSentMsg();
 };
