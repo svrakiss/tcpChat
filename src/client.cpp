@@ -96,12 +96,10 @@ int main(int argc, char *argv[])
         t1 = thread([&jimmy]() {
             cout << "yessss" << endl;
             jimmy.write();
-            return NULL;
         });
         t2 = thread([&charlie]() {
             cout << "nooooo" << endl;
             charlie.read();
-            return NULL;
         });
         t1.join();
         t2.join();
