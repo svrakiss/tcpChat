@@ -12,7 +12,7 @@ using namespace std;
 class tcpServer
 {
 public:
-std::string userName;
+    std::string userName;
     tcpServer(boost::asio::io_service &io_service, unsigned short portno) : acceptor_(io_service, tcp::endpoint(tcp::v4(), portno)) { spin(); }
     tcpServer(boost::asio::io_service &io_service) : acceptor_(io_service, tcp::endpoint(tcp::v4(), 4567)) { spin(); }
 
@@ -22,15 +22,22 @@ private:
     {
         // initiates an asynchronous accept operation
         // to wait for a new connection.
-
-        Chatter::pointer spongeBoyMeBob = Chatter::create(acceptor_.get_io_service(),userName);
+        cout << "I'm spinning" << endl;
+        Chatter::pointer spongeBoyMeBob = Chatter::create(acceptor_.get_io_service(), userName);
+        cout << "I made a chatter (pointer)" << endl;
         acceptor_.async_accept(*spongeBoyMeBob->socket(), boost::bind(&tcpServer::handleAccept, this, spongeBoyMeBob, boost::asio::placeholders::error));
+        cout << "I just did something with bind and aysnc_accept" << endl;
     }
-    void handleAccept(Chatter::pointer chatter, const boost::system::error_code& error)
+    void handleAccept(Chatter::pointer chatter, const boost::system::error_code &error)
     {
-        if(!error){
+        cout << "I'm in handle accept" << endl;
+        if (!error)
+        {
+            cout << "did  something just happen?" << endl;
+
             chatter->run();
         }
+        cout <<"Onward!"<<endl;
         // goes to accept next connection
         spin();
     }

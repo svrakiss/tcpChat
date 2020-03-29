@@ -59,14 +59,19 @@ void Chatter::write()
 
 void Chatter::run(){
     thread t1,t2;
+    cout<<"i'm about to do some runnin"<<endl;
     t1=thread([this](){
         while(true){
+        // cout <<"thread 1"<<endl;
             read();
         }
     });
        t2=thread([this](){
         while(true){
+        //    cout << "thread 2"<<endl;
             write();
         }
     });
+    t1.join();
+    t2.join();
 }
