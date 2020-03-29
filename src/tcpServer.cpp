@@ -13,8 +13,13 @@ class tcpServer
 {
 public:
     std::string userName;
-    tcpServer(boost::asio::io_service &io_service, unsigned short portno) : acceptor_(io_service, tcp::endpoint(tcp::v4(), portno)) { spin(); }
-    tcpServer(boost::asio::io_service &io_service) : acceptor_(io_service, tcp::endpoint(tcp::v4(), 4567)) { spin(); }
+    tcpServer(boost::asio::io_service &io_service, unsigned short portno) : acceptor_(io_service, tcp::endpoint(tcp::v4(), portno)) { prompt();spin(); }
+    tcpServer(boost::asio::io_service &io_service) : acceptor_(io_service, tcp::endpoint(tcp::v4(), 4567)) {prompt(); spin(); }
+    void prompt()
+    {
+        cout << "Please enter a user name:";
+        getline(cin, userName);
+    }
 
 private:
     // run until stopped
@@ -37,7 +42,7 @@ private:
 
             chatter->run();
         }
-        cout <<"Onward!"<<endl;
+        cout << "Onward!" << endl;
         // goes to accept next connection
         spin();
     }

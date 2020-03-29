@@ -35,6 +35,7 @@ void Chatter::read()
     boost::system::error_code error;
     size_t len = boost::asio::read(*mySock_, boost::asio::buffer(buf), error);
     std::cout.write(buf.data(), len);
+    cout<<endl;
     if (error == boost::asio::error::eof){
         std::cout << "time to die" << std::endl; // Connection closed cleanly by peer.
         delete this;
