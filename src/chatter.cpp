@@ -9,6 +9,14 @@
 using boost::asio::ip::tcp;
 using namespace std;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
+ typedef boost::shared_ptr<Chatter> pointer;
+
+pointer Chatter::create(boost::asio::io_service& io_service, std::string userName){
+    return pointer (new Chatter(boost::shared_ptr<tcp::socket>(new tcp::socket(io_service)), userName));
+}
+pointer Chatter::create(boost::asio::io_service& io_service){
+    create(io_service,"Bob");
+}
 
 Chatter::Chatter(sockPtr socket) : mySock_(socket), userName("Bob")
 {
@@ -17,6 +25,9 @@ Chatter::Chatter(sockPtr socket, string name) : mySock_(socket), userName(name) 
 Chatter::~Chatter()
 {
     mySock_.reset();
+}
+sockPtr Chatter::socket(){
+    return mySock_;
 }
 void Chatter::read()
 {
@@ -42,4 +53,16 @@ void Chatter::write()
         throw boost::system::system_error(error); // Some other error.
 }
 
-;
+void Chatter::run(){
+    thread t1,t2;
+    t1=thread([this](){
+        while(true){
+            read();
+        }
+    });
+       t2=thread([this](){
+        while(true){
+            write();
+        }
+    });
+}
