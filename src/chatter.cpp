@@ -1,48 +1,50 @@
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <sys/types.h>
-  #include <sys/socket.h>
-  #include <netinet/in.h>
-  #include <pthread.h>
-#include <netdb.h>
-
+#include <iostream>
+#include <thread>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 
-
-  #define PORT 4567
-  #define BUF_SIZE 256
-  #define CLADDR_LEN 100
+#define PORT 4567
+#define BUF_SIZE 256
+#define CLADDR_LEN 100
 using boost::asio::ip::tcp;
-class Chatter{
+using namespace std;
+typedef boost::shared_ptr<tcp::socket> sockPtr;
 
-    void error(char *msg)
+class Chatter
+{
+private:
+    boost::shared_ptr<tcp::socket> mySock_;
+    string userName;
+
+public:
+    Chatter(sockPtr socket) : mySock_(socket), userName("Bob")
     {
-        perror(msg);
-        exit(1);
     }
-    
-    void * receiveMessage(void * socket) {
-        int  sockfd,ret;
-        char buffer[BUF_SIZE];
-        sockfd = (int) socket;
-
-        memset(buffer, 0, BUF_SIZE);
-        if (write(sockfd,"I'm waiting for message",23) < 0)
-            error("ERROR writing to socket");
-
-        while ((ret = read(sockfd, buffer, BUF_SIZE)) > 0) {
-            printf("client: %s", buffer);
-        }
-        if (ret < 0)
-            printf("Error receiving data!\n");
-        else
-            printf("Closing connection\n");
-        close(sockfd);
+    Chatter(sockPtr socket, string name) : mySock_(socket), userName(name) {}
+    ~Chatter()
+    {
+        mySock_.reset();
     }
-
-
-    
-
+    void read()
+    {
+        boost::array<char, 256> buf;
+        boost::system::error_code error;
+        size_t len = boost::asio::read(*mySock_, boost::asio::buffer(buf), error);
+        std::cout.write(buf.data(), len);
+        if (error == boost::asio::error::eof)
+            std::cout << "time to die" << std::endl; // Connection closed cleanly by peer.
+        else if (error)
+            throw boost::system::system_error(error); // Some other error.
+    }
+    void write()
+    {
+        string buf;
+        getline(cin, buf);
+        boost::system::error_code error;
+        boost::asio::write(*mySock_, boost::asio::buffer(buf), error);
+        if (error == boost::asio::error::eof)
+            std::cout << "time to die" << std::endl; // Connection closed cleanly by peer.
+        else if (error)
+            throw boost::system::system_error(error); // Some other error.
+    }
 };
