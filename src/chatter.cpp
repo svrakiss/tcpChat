@@ -75,6 +75,7 @@ void Chatter::write(const boost::system::error_code &error, size_t bytes_transfe
         die();
         throw boost::system::system_error(error); // Some other error.
     }
+     boost::asio::async_read(*socket().get(),boost::asio::buffer(getBuf()),boost::bind(&Chatter::read,this,boost::asio::placeholders::error,boost::asio::placeholders::bytes_transferred));
 }
 
 void Chatter::run()
