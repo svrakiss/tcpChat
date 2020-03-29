@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <thread>
+#include <boost/thread.hpp>
 #include "chatter.hpp"
 using boost::asio::ip::tcp;
 using namespace std;
@@ -60,7 +60,9 @@ int main(int argc, char *argv[])
         
 
         Chatter::pointer chtPtr=Chatter::create(sharedSocket,userName);
+        boost::thread t(boost::bind(&boost::asio::io_service::run,&io_service));
         chtPtr->run();
+        t.join();
 
     }
     // handle any exceptions that may have been thrown.
