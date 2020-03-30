@@ -35,22 +35,22 @@ private:
     {
         // initiates an asynchronous accept operation
         // to wait for a new connection.
-        std::cout << "I'm spinning" << std::endl;
+        // std::cout << "I'm spinning" << std::endl;
         Chatter::pointer spongeBoyMeBob = Chatter::create(acceptor_.get_io_service(), userName);
-        std::cout << "I made a chatter (pointer)" << std::endl;
+        // std::cout << "I made a chatter (pointer)" << std::endl;
         acceptor_.async_accept(*spongeBoyMeBob->socket(), boost::bind(&tcpServer::handleAccept, this, spongeBoyMeBob, boost::asio::placeholders::error));
-        std::cout << "I just did something with bind and aysnc_accept" << std::endl;
+        // std::cout << "I just did something with bind and aysnc_accept" << std::endl;
     }
     void handleAccept(Chatter::pointer chatter, const boost::system::error_code &error)
     {
-        std::cout << "I'm in handle accept" << std::endl;
+        // std::cout << "I'm in handle accept" << std::endl;
         if (!error)
         {
-            std::cout << "did  something just happen?" << std::endl;
+            // std::cout << "did  something just happen?" << std::endl;
 
             chatter->run();
         }
-        std::cout << "Onward!" << std::endl;
+        // std::cout << "Onward!" << std::endl;
         // goes to accept next connection
         spin();
     }
