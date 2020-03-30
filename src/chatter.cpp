@@ -47,12 +47,15 @@ boost::array<char, 256> &Chatter::getBuf()
 // {
 //     return sentMsg;
 // }
+std::ostream& Chatter::getOut(){
+    return mine;
+}
 void Chatter::read(const boost::system::error_code &error, size_t bytes_transferred)
 {
     // std::cout<<"Hello from read"<<std::endl;
-    std::cout<<std::flush;
-    std::cout.write(getBuf().data(), bytes_transferred);
-    std::cout << "\n";
+    // std::cout<<std::flush;
+    getOut().write(getBuf().data(), bytes_transferred);
+    // getOut()<<"\n";
     if (error == boost::asio::error::eof)
     {
         std::cout << "[reader] dying" << std::endl; // Connection closed cleanly by peer.

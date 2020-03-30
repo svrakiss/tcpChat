@@ -24,7 +24,7 @@ private:
     sockPtr mySock_;
     std::string userName;
     boost::array<char, 256> buf;
-
+    std::ostream mine;
 public:
     Chatter(sockPtr, std::string);
     Chatter(sockPtr);
@@ -36,6 +36,7 @@ public:
     void die();
     boost::array<char, 256> &getBuf();
     boost::array<char, 256> &getSentMsg();
+    std::ostream& getOut();
 };
 
 class ChatMessage
