@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
         
 
         Chatter::pointer chtPtr=Chatter::create(sharedSocket,userName);
-        boost::thread t(boost::bind(&boost::asio::io_service::run,&io_service));
         chtPtr->run();
+        boost::thread t(boost::bind(&boost::asio::io_service::run,&io_service));
         t.join();
 
     }
