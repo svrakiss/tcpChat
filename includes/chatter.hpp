@@ -9,26 +9,28 @@ typedef boost::shared_ptr<tcp::socket> sockPtr;
 class ChatMessage
 {
 public:
-    ChatMessage(std::string buf, std::string uname) : sentMsg(buf), name(uname)
-    {
-        // std::memcpy(header);
-    }
     std::string sentMsg;
     std::string name;
-    char header[9] = {0};
-    std::string getData()
-    {
+    boost::array<std::size_t,3> header;
+    std::string getData(){
+    
         return name + ">" + sentMsg;
     }
     std::size_t length()
     {
         return sizeof(name + ">") + sizeof(sentMsg);
     }
-    char* getHeader(){
-        
-        std::memcpy(header, (char *)((int) length()),sizeof((int) length()));
+    ChatMessage(std::string buf, std::string uname) : sentMsg(buf), name(uname)
+    {
+    //   std::size_t go= length();
+      header=boost::array<std::size_t,3>();
+      header.c_array()[0]=length();
+    
+    }
+    boost::array<std::size_t,3>& getHeader()
+    {
+   
         return header;
-
     }
 };
 class Chatter : public boost::enable_shared_from_this<Chatter>
@@ -50,17 +52,18 @@ private:
     std::string userName;
     boost::array<char, 256> buf;
     std::deque<ChatMessage> writeQueue;
-
+    boost::array<std::size_t,3> headbuf={0};
 public:
     Chatter(sockPtr, std::string);
     Chatter(sockPtr);
     ~Chatter();
     sockPtr socket();
-    void read(const boost::system::error_code &,std::size_t);
+    void read(const boost::system::error_code &, std::size_t);
     void write(const boost::system::error_code &, std::size_t);
     void handleWrite(ChatMessage &);
     void addMessage(ChatMessage &);
-    void readHeader(const boost::system::error_code&);
+    void readHeader(const boost::system::error_code &);
+    boost::array<std::size_t,3>& getHeadBuf();
     void run();
     void die();
     boost::array<char, 256> &getBuf();
