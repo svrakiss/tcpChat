@@ -46,7 +46,7 @@ boost::array<char, 256> &Chatter::getBuf()
 {
     return buf;
 }
-boost::array<std::size_t, 3> &Chatter::getHeadBuf()
+boost::array<char, 5> &Chatter::getHeadBuf()
 {
     return headbuf;
 }
@@ -55,15 +55,17 @@ void Chatter::readHeader(const boost::system::error_code &error)
     std::cout << "decoding header";
     if (!error)
     {
-        size_t msg_length = getHeadBuf().c_array()[0];
-        if (msg_length != 0) // time to read the full message
+        size_t msg_length = ChatMessage::readHeader(getHeadBuf().c_array());
+        sizenow=msg_length;
+        std::cout << "message length" << msg_length << '\n';
+        if (true) // time to read the full message
         {
             boost::asio::async_read(*socket(), boost::asio::buffer(getBuf(), msg_length),
                                     boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
         }
         else //empty message-->>go get a header
         {
-            boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), sizeof(boost::array<std::size_t, 3>)),
+            boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                     boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
         }
     }
@@ -76,7 +78,7 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
 {
     std::cout << "Hello from read" << std::endl;
     // std::cout<<std::flush;
-
+    std::cout << " bytes transferred" << bytes_transferred << std::endl;
     // getOut()<<"\n";
     if (error)
     {
@@ -85,34 +87,39 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
     }
     else
     {
-        std::cout.write(getBuf().data(), bytes_transferred);
-        boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), sizeof(boost::array<std::size_t, 3>)),
+        std::cout.write(getBuf().data(), getMe()->sizenow);
+        std::cout << '\n';
+        boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
     }
 }
 void Chatter::addMessage(ChatMessage &chatmessage)
 {
-    std::cout << "Hello from adddmsg" << std::endl;
+    // std::cout << "Hello from adddmsg" << std::endl;
 
     socket()->get_io_service().dispatch(boost::bind(&Chatter::handleWrite, getMe(), chatmessage));
 }
 void Chatter::handleWrite(ChatMessage &msg)
 {
-    std::cout << "Hello from handlewrite1" << std::endl;
+    // std::cout << "Hello from handlewrite1" << std::endl;
 
     bool busy = !writeQueue.empty();
-    std::cout << "Hello from handlewrite2" << std::endl;
+    // std::cout << "Hello from handlewrite2" << std::endl;
 
     writeQueue.push_back(msg);
-    std::cout << "Hello from handlewrite3" << std::endl;
+    // std::cout << "Hello from handlewrite3" << std::endl;
 
     if (!busy)
-    { 
-            std::cout << "Hello from handlewrite4" << std::endl;
+    {
+        // std::cout << "Hello from handlewrite4" << std::endl;
 
-        std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getHeader()), boost::asio::buffer(writeQueue.front().getData())};
+        std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getData())};
+        std::cout << "sending size" << sizeof(buffy) << '\n';
+        // std::cout << "header says" << writeQueue.front().getHeader().c_array()[0] << '\n';
+        std::cout << " size of header" << sizeof(boost::array<std::size_t, 3>) << std::endl;
+
         boost::asio::async_write(*socket(),
-                                 buffy,
+                                 boost::asio::buffer(writeQueue.front().getData(),writeQueue.front().getlength()),
                                  boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     }
 }
@@ -135,10 +142,14 @@ void Chatter::write(const boost::system::error_code &error, size_t bytes_transfe
         writeQueue.pop_front();
         if (!writeQueue.empty())
         { //const buffers are for sending, mutable buffers are for receiving
-            std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getHeader()), boost::asio::buffer(writeQueue.front().getData())};
-            boost::asio::async_write(*socket(),
-                                     buffy,
-                                     boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+            // std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getHeader()), boost::asio::buffer(writeQueue.front().getData())};
+            // std::cout << "sending size" << sizeof(buffy) << '\n';
+            // std::cout << "header says" << writeQueue.front().getHeader().c_array()[0] << '\n';
+            // std::cout << " size of header" << sizeof(boost::array<std::size_t, 3>) << std::endl;
+
+        boost::asio::async_write(*socket(),
+                                 boost::asio::buffer(writeQueue.front().getData(),writeQueue.front().getlength()),
+                                 boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
         }
     }
 }
@@ -153,7 +164,7 @@ void Chatter::run()
         // while (true)
         std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
         // cout <<"thread 1"<<endl;
-        boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getBuf(), sizeof(boost::array<std::size_t, 3>)),
+        boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, p1->shared_from_this(), boost::asio::placeholders::error));
     });
     boost::thread t2([p2]() {

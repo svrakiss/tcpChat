@@ -2,6 +2,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/array.hpp>
+#include <deque>
 using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
 //In order to be able to consistently read a single message from the socket at a time, you need a header of set length that gives you info about the message.
@@ -11,26 +12,57 @@ class ChatMessage
 public:
     std::string sentMsg;
     std::string name;
-    boost::array<std::size_t,3> header;
-    std::string getData(){
-    
-        return name + ">" + sentMsg;
+    std::string bb;
+    char header[4];
+    enum
+    {
+        headerlength = 4
+    };
+    std::string getData()
+    {
+        return header+bb;
+    }
+    std::string getbb() const
+    {
+
+        return bb;
     }
     std::size_t length()
     {
-        return sizeof(name + ">") + sizeof(sentMsg);
+        std::string bb = name + ">" + sentMsg;
+        return bb.size();
     }
+    std::size_t getlength()
+    {
+        return headerlength + bb.size();
+    }
+
     ChatMessage(std::string buf, std::string uname) : sentMsg(buf), name(uname)
     {
-    //   std::size_t go= length();
-      header=boost::array<std::size_t,3>();
-      header.c_array()[0]=length();
-    
+
+        std::sprintf(header, "%4d", length());
+        std::cout << "length is " << length() << '\n';
+        bb = name + ">" + sentMsg;
     }
-    boost::array<std::size_t,3>& getHeader()
+    char *getHeader()
     {
-   
+
         return header;
+    }
+    static int readHeader(char *data)
+    {
+        char header[5] = "";
+        //the last byte is the null character
+        std::strncat(header, data, 4);
+        //read string as int
+        int msg_length = std::atoi(header);
+        std::cout << " Message header says length is " << msg_length << '\n';
+        if (msg_length > 256)
+        {
+            // might get nonsense. ok probably will get nonsense
+            msg_length = 0;
+        }
+        return msg_length;
     }
 };
 class Chatter : public boost::enable_shared_from_this<Chatter>
@@ -52,7 +84,9 @@ private:
     std::string userName;
     boost::array<char, 256> buf;
     std::deque<ChatMessage> writeQueue;
-    boost::array<std::size_t,3> headbuf={0};
+    boost::array<char, 5> headbuf = {0};
+    std::size_t sizenow = 0;
+
 public:
     Chatter(sockPtr, std::string);
     Chatter(sockPtr);
@@ -63,7 +97,7 @@ public:
     void handleWrite(ChatMessage &);
     void addMessage(ChatMessage &);
     void readHeader(const boost::system::error_code &);
-    boost::array<std::size_t,3>& getHeadBuf();
+    boost::array<char, 5> &getHeadBuf();
     void run();
     void die();
     boost::array<char, 256> &getBuf();
