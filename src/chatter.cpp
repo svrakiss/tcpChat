@@ -107,7 +107,9 @@ void Chatter::handleWrite(ChatMessage &msg)
     std::cout << "Hello from handlewrite3" << std::endl;
 
     if (!busy)
-    {
+    { 
+            std::cout << "Hello from handlewrite4" << std::endl;
+
         std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getHeader()), boost::asio::buffer(writeQueue.front().getData())};
         boost::asio::async_write(*socket(),
                                  buffy,
