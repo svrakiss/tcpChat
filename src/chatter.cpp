@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include "chatter.hpp"
+
 #define PORT 4567
 #define BUF_SIZE 256
 #define CLADDR_LEN 100
@@ -27,7 +28,7 @@ Chatter::pointer Chatter::create(sockPtr sockPtr, std::string userName)
 Chatter::Chatter(sockPtr socket) : mySock_(socket), userName("Bob")
 {
 }
-Chatter::Chatter(sockPtr socket, std::string name) : mySock_(socket), userName(name) {}
+Chatter::Chatter(sockPtr socket, std::string name) : mySock_(socket), userName(name), writeQueue(std::deque<ChatMessage>()) {}
 Chatter::~Chatter() {}
 void Chatter::die()
 {
@@ -47,14 +48,15 @@ boost::array<char, 256> &Chatter::getBuf()
 // {
 //     return sentMsg;
 // }
-std::ostream& Chatter::getOut(){
-    return mine;
-}
+// std::ostream &Chatter::getOut()
+// {
+//     return mine;
+// }
 void Chatter::read(const boost::system::error_code &error, size_t bytes_transferred)
 {
     // std::cout<<"Hello from read"<<std::endl;
     // std::cout<<std::flush;
-    getOut().write(getBuf().data(), bytes_transferred);
+    write(getBuf().data(), bytes_transferred);
     // getOut()<<"\n";
     if (error == boost::asio::error::eof)
     {
@@ -68,12 +70,21 @@ void Chatter::read(const boost::system::error_code &error, size_t bytes_transfer
         die();
         throw boost::system::system_error(error); // Some other error.
     }
-
-    std::string buffer;
-    std::cout << userName << ">";
-    std::getline(std::cin, buffer);
-    socket()->async_write_some(boost::asio::buffer(userName + "> " + buffer+"\n"),
-                               boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    socket()->async_read_some(boost::asio::buffer(getBuf()), boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+}
+void Chatter::addMessage(ChatMessage &chatmessage)
+{
+    socket()->get_io_service().post(boost::bind(&Chatter::handleWrite, getMe(), chatmessage));
+}
+void Chatter::handleWrite(ChatMessage &msg)
+{
+    bool busy = !writeQueue.empty();
+    writeQueue.push_back(msg);
+    if (!busy)
+    {
+        boost::asio::async_write(*socket(), boost::asio::buffer(writeQueue.front().getHeader() + writeQueue.front().getData()),
+                                 boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    }
 }
 void Chatter::write(const boost::system::error_code &error, size_t bytes_transferred)
 {
@@ -82,20 +93,18 @@ void Chatter::write(const boost::system::error_code &error, size_t bytes_transfe
     // cout<< userName << "> ";
     // getline(cin, buf);
     // boost::asio::write(*mySock_, boost::asio::buffer(buf), error);
-    if (error == boost::asio::error::eof)
+    if (error)
     {
         std::cout << "[writer] dying" << std::endl; // Connection closed cleanly by peer.
         die();
     }
-    else if (error)
+    else
     {
-
-        std::cerr << error.message() << std::endl;
-
-        die();
-        throw boost::system::system_error(error); // Some other error.
+        writeQueue.pop_front();
+        if (!writeQueue.empty())
+            boost::asio::async_write(*socket(), boost::asio::buffer(writeQueue.front().getHeader() + writeQueue.front().getData()),
+                                     boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     }
-    socket()->async_read_some(boost::asio::buffer(getBuf()), boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
 void Chatter::run()
@@ -106,23 +115,23 @@ void Chatter::run()
     // cout<<"i'm about to do some runnin"<<endl;
     boost::thread t1([p1]() {
         // while (true)
-        std::cout << boost::this_thread::get_id()<<" "+ p1->userName<<"\n";
+        std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
         // cout <<"thread 1"<<endl;
         p1->socket()->async_read_some(boost::asio::buffer(p1->getBuf()),
                                       boost::bind(&Chatter::read, p1->shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     });
     boost::thread t2([p2]() {
         std::string buffer;
-        // while (true)
+        while (true)
         {
-            std::cout << boost::this_thread::get_id()<<"\n";
-
+            // std::cout << boost::this_thread::get_id() << "\n";
             std::cout << p2->userName << ">";
             std::getline(std::cin, buffer);
-
+            ChatMessage chat(buffer, p2->userName);
+            p2->addMessage(chat);
             //    cout << "thread 2"<<endl;
-            p2->socket()->async_write_some(boost::asio::buffer(p2->userName + "> " + buffer+"\n"),
-                                           boost::bind(&Chatter::write, p2, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+            // p2->socket()->async_write_some(boost::asio::buffer(p2->userName + "> " + buffer + "\n"),
+            //                                boost::bind(&Chatter::write, p2, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
         }
     });
     t1.join();
