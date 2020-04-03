@@ -32,10 +32,10 @@ void Chatter::die()
     if (!isendwin()) // the first handler gets here
     {
         endwin(); // exit ncurses
-            mySock_->shutdown(mySock_->shutdown_both);
-                mySock_->close();
         if (mySock_->is_open())
         {
+            mySock_->shutdown(mySock_->shutdown_both);
+            mySock_->close();
             // if (mySock_->is_open())
         }
         // pthread_exit()
@@ -43,10 +43,13 @@ void Chatter::die()
         // mySock_->shutdown(tcp::socket::shutdown_both);
         // this_thread.interrupt();
         // boost::this_thread::yield();
-        
-        std::cout << "REALLY?" << std::endl;
+
+        std::cout << "someone left" << std::endl;
+        //    throw_error(boost::asio::placeholders::error, "read");
     }
-        // boost::this_thread::interruption_requested();
+    throw new std::exception;
+
+    // boost::this_thread::interruption_requested();
 }
 
 sockPtr Chatter::socket()
@@ -208,44 +211,60 @@ auto setupNcurses()
 
 void Chatter::run()
 {
-    sayHello();
-    boost::shared_ptr<Chatter> p1 = getMe();
-    boost::shared_ptr<Chatter> p2 = getMe();
-    window = setupNcurses(); //essentially a global variable
-    ;
-    boost::thread t1([p1]() {
-        // while (true)
-        // std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
-        // cout <<"thread 1"<<endl;
-        boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
-                                boost::bind(&Chatter::readHeader, p1->shared_from_this(), boost::asio::placeholders::error));
-        p1->socket()->get_io_service().run(); // this is so that reading is happening concurrently with writing to the terminal, at least
-    });
-    ;
-    boost::thread t2([p2]() {
-        std::string buffer2 = p2->userName + "> ";
-        char msg[BUF_SIZE] = "";
-        while (true)
-        {
-            printw(buffer2.c_str());
-            refresh();   // might get something that moves the cursor during this time
-            getstr(msg); // currently this triggers received messages to display
-            // (std::cin, buffer);
-            // if(isendwin()){
-            //     endwin();
-            // }
-            // // std::cout<<"read: "<<header<<'\n';
-            // refresh();
-            if (shouldIDie(msg)){
-                p2->die();
-                break;}
-            ChatMessage chat(msg, p2->userName);
+    try
+    {
+        tcp::socket::broadcast option(true);
+        // boost::asio::ip::multicast:: option2(true);
+        mySock_->set_option(option);
+        // mySock_->set_option();
 
-            p2->addMessage(chat);
-            p2->socket()->get_io_service().poll();
-            refresh();
-        }
-    });
-    t1.join();
-    t2.join();
+        // sayHello();
+        boost::shared_ptr<Chatter> p1 = getMe();
+        boost::shared_ptr<Chatter> p2 = getMe();
+        window = setupNcurses(); //essentially a global variable
+        ;
+        boost::thread t1([p1]() {
+            // while (true)
+            // std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
+            // cout <<"thread 1"<<endl;
+            boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
+                                    boost::bind(&Chatter::readHeader, p1->shared_from_this(), boost::asio::placeholders::error));
+            p1->socket()->get_io_service().run(); // this is so that reading is happening concurrently with writing to the terminal, at least
+        });
+        ;
+        boost::thread t2([p2]() {
+            std::string buffer2 = p2->userName + "> ";
+            char msg[BUF_SIZE] = "";
+            while (true)
+            {
+                printw(buffer2.c_str());
+                refresh();   // might get something that moves the cursor during this time
+                getstr(msg); // currently this triggers received messages to display
+                // (std::cin, buffer);
+                // if(isendwin()){
+                //     endwin();
+                // }
+                // // std::cout<<"read: "<<header<<'\n';
+                // refresh();
+                if (shouldIDie(msg))
+                {
+                    p2->die();
+                    break;
+                }
+                ChatMessage chat(msg, p2->userName);
+
+                p2->addMessage(chat);
+                p2->socket()->get_io_service().poll();
+                refresh();
+            }
+        });
+        t1.join();
+        t2.join();
+    }
+    catch (std::exception &error)
+
+    {
+        std::cout << "IM OUT" << std::endl;
+        exit;
+    }
 }

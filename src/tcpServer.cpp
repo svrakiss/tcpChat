@@ -26,11 +26,11 @@ public:
     {
         std::cout << "Please enter a user name:";
         std::getline(std::cin, userName);
-        if(std::strstr(userName.c_str(),KILL_WORD)!=NULL || userName.empty()){
-            std::cout <<"contains reserved word "<<KILL_WORD<< " or is empty \n";
+        if (std::strstr(userName.c_str(), KILL_WORD) != NULL || userName.empty())
+        {
+            std::cout << "contains reserved word " << KILL_WORD << " or is empty \n";
             prompt();
         }
-
     }
 
 private:
@@ -49,10 +49,13 @@ private:
     {
         // std::cout << "I'm in handle accept" << std::endl;
         if (!error)
+
         {
+            // std::cout <<boost::asio::ip::host_name()<<std::endl;
 
+            // boost::asio::ip::multicast::outbound_interface option(boost::asio::ip::address_v4::any());
             // std::cout << "did  something just happen?" << std::endl;
-
+            // chatter->socket()->set_option(option);
             chatter->run();
         }
         // std::cout << "Onward!" << std::endl;
@@ -63,7 +66,7 @@ private:
 };
 int main(int argc, char *argv[])
 {
-    unsigned short portno=DEFAULT_PORT;
+    unsigned short portno = DEFAULT_PORT;
     if (argc != 2)
     {
         std::cout << "usage: <optional Port no.>" << '\n';
