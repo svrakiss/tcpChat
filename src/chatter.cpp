@@ -209,7 +209,7 @@ void Chatter::run()
         boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, p1->shared_from_this(), boost::asio::placeholders::error));
         p1->socket()->get_io_service().run(); // this is so that reading is happening concurrently with writing to the terminal, at least
-    });
+    });;
     boost::thread t2([p2]() {
         std::string buffer;
         std::string buffer2 = p2->userName + "> ";

@@ -38,11 +38,11 @@ public:
 
         bb = name + ">" + sentMsg;
         std::sprintf(header, "%4ld", length());   
-                 if(isendwin()){
-                endwin();
-            }
-            std::cout<<"read: "<<header<<std::endl;
-        std::cout << "length is " << length() << '\n';
+            //      if(isendwin()){
+            //     endwin();
+            // }
+            // std::cout<<"read: "<<header<<std::endl;
+        // std::cout << "length is " << length() << '\n';
             refresh();
     }
 
