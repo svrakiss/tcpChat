@@ -107,17 +107,18 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         strncpy(jimmy.data(), getBuf().data(), sizenow);
         if (shouldIDie(jimmy.data()))
             die();
-        int y, x,xx;                      // to store where you are
+        int y, x, xx;                  // to store where you are
         getyx(stdscr, y, x);           // save current pos
         move(y, 0);                    // move to begining of line
-        instr(currentState); // current text in terminal  
+        instr(currentState);           // current text in terminal
         clrtoeol();                    // clear line
         printw(jimmy.data(), sizenow); // this copies the entire contents of the array, regardless of the amount entered
         addch('\n');
         getyx(stdscr, y, xx); // save current pos
-        printw(currentState);  // put it back
-        move(y, x); // move back to where you were
-        refresh();  //this makes it show up immediately
+        printw(currentState); // put it back
+        move(y, x);           // move back to where you were (this moves output, not the cursor)
+        // mvcur(y, xx, y, x);
+        refresh(); //this makes it show up immediately
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
     }
@@ -188,7 +189,7 @@ auto setupNcurses()
     auto heya = initscr();
     // auto booya = newwin(200, 200, 200, 200);
     cbreak(); // one char at a time
-    scrollok(heya, false);
+    scrollok(stdscr, false);
     leaveok(heya, true);
     echo();
     keypad(stdscr, true);
@@ -213,15 +214,12 @@ void Chatter::run()
     });
     ;
     boost::thread t2([p2]() {
-        std::string buffer;
         std::string buffer2 = p2->userName + "> ";
-        int numstr = 0;
         char msg[BUF_SIZE] = "";
         while (true)
         {
             printw(buffer2.c_str());
-            // std::cout << ++numstr;
-            // wscanw(p2->window,buffer);
+            refresh();   // might get something that moves the cursor during this time
             getstr(msg); // currently this triggers received messages to display
             // (std::cin, buffer);
             // if(isendwin()){
