@@ -4,8 +4,9 @@
 #include <boost/array.hpp>
 #include <deque>
 #include <ncurses.h>
-using boost::asio::ip::tcp;
+#define BUF_SIZE 256
 #define KILL_WORD "seppuku"
+using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
 //In order to be able to consistently read a single message from the socket at a time, you need a header of set length that gives you info about the message.
 // Like, how many more bytes to read.
@@ -61,7 +62,7 @@ public:
         // // std::cout<<"read: "<<header<<'\n';
         // std::cout << " Message header says length is " << msg_length << '\n';
         refresh();
-        if (msg_length > 256)
+        if (msg_length > BUF_SIZE)
         {
             // might get nonsense. ok probably will get nonsense
             msg_length = 0;
@@ -88,7 +89,7 @@ public:
 private:
     sockPtr mySock_;
     std::string userName;
-    boost::array<char, 256> buf;
+    boost::array<char, BUF_SIZE> buf;
     std::deque<ChatMessage> writeQueue;
     boost::array<char, 5> headbuf = {0};
     std::size_t sizenow = 0;
@@ -107,7 +108,7 @@ public:
     boost::array<char, 5> &getHeadBuf();
     void run();
     void die();
-    boost::array<char, 256> &getBuf();
-    boost::array<char, 256> &getSentMsg();
+    boost::array<char, BUF_SIZE> &getBuf();
+    boost::array<char, BUF_SIZE> &getSentMsg();
     void sayHello();
 };

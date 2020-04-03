@@ -6,7 +6,6 @@
 #include "chatter.hpp"
 #include <ncurses.h>
 
-#define BUF_SIZE 256
 using boost::thread;
 using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
@@ -30,13 +29,24 @@ Chatter::Chatter(sockPtr socket, std::string name) : mySock_(socket), userName(n
 Chatter::~Chatter() {}
 void Chatter::die()
 {
-    endwin(); // exit ncurses
-    std::cout << "REALLY?" << std::endl;
-    mySock_->close();
-    // this_thread.interrupt();
-    // boost::this_thread::yield();
-
-    mySock_->shutdown(tcp::socket::shutdown_both);
+    if (!isendwin()) // the first handler gets here
+    {
+        endwin(); // exit ncurses
+            mySock_->shutdown(mySock_->shutdown_both);
+                mySock_->close();
+        if (mySock_->is_open())
+        {
+            // if (mySock_->is_open())
+        }
+        // pthread_exit()
+        // boost::
+        // mySock_->shutdown(tcp::socket::shutdown_both);
+        // this_thread.interrupt();
+        // boost::this_thread::yield();
+        
+        std::cout << "REALLY?" << std::endl;
+    }
+        // boost::this_thread::interruption_requested();
 }
 
 sockPtr Chatter::socket()
@@ -61,10 +71,10 @@ void Chatter::readHeader(const boost::system::error_code &error)
         // std::cout << "message length" << msg_length << '\n';
         if (msg_length != 0) // time to read the full message
         {
-            ;
+            boost::system::error_code read_error;
 
-            std::size_t bytes = boost::asio::read(*socket(), boost::asio::buffer(getBuf(), msg_length));
-            read(error, bytes);
+            std::size_t bytes = boost::asio::read(*socket(), boost::asio::buffer(getBuf(), msg_length), read_error);
+            read(read_error, bytes);
             // boost::asio::async_read(*socket(), boost::asio::buffer(getBuf(), msg_length),
             // boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
             // socket()->get_io_service().poll();
@@ -187,7 +197,6 @@ void Chatter::sayHello()
 auto setupNcurses()
 {
     auto heya = initscr();
-    // auto booya = newwin(200, 200, 200, 200);
     cbreak(); // one char at a time
     scrollok(stdscr, false);
     leaveok(heya, true);
@@ -227,9 +236,11 @@ void Chatter::run()
             // }
             // // std::cout<<"read: "<<header<<'\n';
             // refresh();
-            if (shouldIDie(msg))
+            if (shouldIDie(msg)){
                 p2->die();
+                break;}
             ChatMessage chat(msg, p2->userName);
+
             p2->addMessage(chat);
             p2->socket()->get_io_service().poll();
             refresh();
