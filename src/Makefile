@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-I../includes  -I/home/des/.anaconda/include -std=c++17
+CFLAGS=-I../includes  -std=c++17
 LIBS=-lpthread -lboost_system  -lboost_thread -lncurses
 DEPS = chatter.hpp
 OBJ = chatter.o client.o
