@@ -3,6 +3,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/array.hpp>
 #include <deque>
+#include <ncurses.h>
 using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
 //In order to be able to consistently read a single message from the socket at a time, you need a header of set length that gives you info about the message.
@@ -20,12 +21,11 @@ public:
     };
     std::string getData()
     {
-        return header+bb;
+        return header + bb;
     }
 
     std::size_t length()
     {
-        std::string bb = name + ">" + sentMsg;
         return bb.size();
     }
     std::size_t getlength()
@@ -36,7 +36,7 @@ public:
     ChatMessage(std::string buf, std::string uname) : sentMsg(buf), name(uname)
     {
 
-        std::sprintf(header, "%4d", length());
+        std::sprintf(header, "%4ld", length());
         // std::cout << "length is " << length() << '\n';
         bb = name + ">" + sentMsg;
     }
@@ -78,6 +78,7 @@ private:
     std::deque<ChatMessage> writeQueue;
     boost::array<char, 5> headbuf = {0};
     std::size_t sizenow = 0;
+    WINDOW* window=NULL;
 
 public:
     Chatter(sockPtr, std::string);
