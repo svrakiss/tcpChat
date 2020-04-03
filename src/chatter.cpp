@@ -103,18 +103,21 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
     {
         ;
         auto jimmy = boost::array<char, BUF_SIZE>();
-        auto currentState = "";
+        char currentState[BUF_SIZE] = ""; // technically incorrect, but good enough
         strncpy(jimmy.data(), getBuf().data(), sizenow);
         if (shouldIDie(jimmy.data()))
             die();
-        int y, x;                      // to store where you are
+        instr(currentState); // current text in terminal  
+        int y, x,xx;                      // to store where you are
         getyx(stdscr, y, x);           // save current pos
         move(y, 0);                    // move to begining of line
         clrtoeol();                    // clear line
         printw(jimmy.data(), sizenow); // this copies the entire contents of the array, regardless of the amount entered
         addch('\n');
-        move(y, x);                    // move back to where you were
-        refresh(); //this makes it show up immediately
+        getyx(stdscr, y, xx); // save current pos
+        printw(currentState);  // put it back
+        move(y, x); // move back to where you were
+        refresh();  //this makes it show up immediately
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
     }
