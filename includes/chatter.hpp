@@ -38,12 +38,12 @@ public:
 
         bb = name + ">" + sentMsg;
         std::sprintf(header, "%4ld", length());   
-        //          if(isendwin()){
-        //         endwin();
-        //     }
-        //     // std::cout<<"read: "<<header<<'\n';
-        // // std::cout << "length is " << length() << '\n';
-        //     refresh();
+                 if(isendwin()){
+                endwin();
+            }
+            std::cout<<"read: "<<header<<'\n';
+        std::cout << "length is " << length() << '\n';
+            refresh();
     }
 
     static int readHeader(char *data)
@@ -53,13 +53,13 @@ public:
         std::strncat(header, data, 4);
         //read string as int
         int msg_length = std::atoi(header);
-        // if (isendwin())
-        // {
-        //     endwin();
-        // }
-        // // std::cout<<"read: "<<header<<'\n';
-        // std::cout << " Message header says length is " << msg_length << '\n';
-        // refresh();
+        if (isendwin())
+        {
+            endwin();
+        }
+        // std::cout<<"read: "<<header<<'\n';
+        std::cout << " Message header says length is " << msg_length << '\n';
+        refresh();
         if (msg_length > 256)
         {
             // might get nonsense. ok probably will get nonsense

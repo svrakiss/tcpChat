@@ -48,7 +48,7 @@ boost::array<char, 256> &Chatter::getBuf()
     return buf;
 }
 boost::array<char, 5> &Chatter::getHeadBuf()
-{;
+{
     return headbuf;
 }
 void Chatter::readHeader(const boost::system::error_code &error)
@@ -59,11 +59,15 @@ void Chatter::readHeader(const boost::system::error_code &error)
         size_t msg_length = ChatMessage::readHeader(getHeadBuf().c_array());
         sizenow = msg_length;
         // std::cout << "message length" << msg_length << '\n';
-        if (true) // time to read the full message
+        if (msg_length != 0) // time to read the full message
         {
             ;
-            boost::asio::async_read(*socket(), boost::asio::buffer(getBuf(), msg_length),
-                                    boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+
+            std::size_t bytes = boost::asio::read(*socket(), boost::asio::buffer(getBuf(), msg_length));
+            read(error, bytes);
+            // boost::asio::async_read(*socket(), boost::asio::buffer(getBuf(), msg_length),
+            // boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+            // socket()->get_io_service().poll();
         }
         else //empty message-->>go get a header
         {
@@ -106,6 +110,7 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         // std::cout.write(getBuf().data(), getMe()->sizenow);
 
         // std::cout << '\n';
+        // readHeader(error)
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
     }
@@ -130,10 +135,8 @@ void Chatter::handleWrite(ChatMessage &msg)
     {
         // std::cout << "Hello from handlewrite4" << std::endl;
 
-        // std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getData())};
         // std::cout << "sending size" << sizeof(buffy) << '\n';
         // std::cout << "header says" << writeQueue.front().getHeader().c_array()[0] << '\n';
-        // std::cout << " size of header" << sizeof(boost::array<std::size_t, 3>) << std::endl;
 
         boost::asio::async_write(*socket(),
                                  boost::asio::buffer(writeQueue.front().getData(), writeQueue.front().getlength()),
