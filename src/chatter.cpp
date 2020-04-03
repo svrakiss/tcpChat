@@ -100,11 +100,11 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
     }
     else
     {;
-        // auto jimmy = boost::array<char, BUF_SIZE>();
+        auto jimmy = boost::array<char, BUF_SIZE>();
 
-        // strncpy(jimmy.data(),getBuf().data(),sizenow);
+        strncpy(jimmy.data(),getBuf().data(),sizenow);
 
-        printw(getBuf().data(), bytes_transferred);
+        printw(jimmy.data(), sizenow);
         // getstr
         addch('\n');
         // std::cout.write(getBuf().data(), getMe()->sizenow);
