@@ -22,11 +22,7 @@ public:
     {
         return header+bb;
     }
-    std::string getbb() const
-    {
 
-        return bb;
-    }
     std::size_t length()
     {
         std::string bb = name + ">" + sentMsg;
@@ -41,14 +37,10 @@ public:
     {
 
         std::sprintf(header, "%4d", length());
-        std::cout << "length is " << length() << '\n';
+        // std::cout << "length is " << length() << '\n';
         bb = name + ">" + sentMsg;
     }
-    char *getHeader()
-    {
 
-        return header;
-    }
     static int readHeader(char *data)
     {
         char header[5] = "";
@@ -56,7 +48,7 @@ public:
         std::strncat(header, data, 4);
         //read string as int
         int msg_length = std::atoi(header);
-        std::cout << " Message header says length is " << msg_length << '\n';
+        // std::cout << " Message header says length is " << msg_length << '\n';
         if (msg_length > 256)
         {
             // might get nonsense. ok probably will get nonsense
@@ -102,5 +94,5 @@ public:
     void die();
     boost::array<char, 256> &getBuf();
     boost::array<char, 256> &getSentMsg();
-    // std::ostream& getOut();
+    void sayHello();
 };

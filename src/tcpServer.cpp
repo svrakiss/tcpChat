@@ -7,18 +7,17 @@
 #include <boost/asio.hpp>
 #include "chatter.hpp"
 using boost::asio::ip::tcp;
-// using namespace  boost::asio;
-// using namespace std;
+#define DEFAULT_PORT 4567
 class tcpServer
 {
 public:
     std::string userName;
-    tcpServer(boost::asio::io_service &io_service, unsigned short portno) : acceptor_(io_service, tcp::endpoint(tcp::v4(), portno))
+    tcpServer(boost::asio::io_service &io_service, int portno) : acceptor_(io_service, tcp::endpoint(tcp::v4(), portno))
     {
         prompt();
         spin();
     }
-    tcpServer(boost::asio::io_service &io_service) : acceptor_(io_service, tcp::endpoint(tcp::v4(), 4567))
+    tcpServer(boost::asio::io_service &io_service) : acceptor_(io_service, tcp::endpoint(tcp::v4(), DEFAULT_PORT))
     {
         prompt();
         spin();
@@ -27,6 +26,7 @@ public:
     {
         std::cout << "Please enter a user name:";
         std::getline(std::cin, userName);
+        std::cout<<"Enter an optional port <default:" <<DEFAULT_PORT<<'\n';
     }
 
 private:
@@ -46,6 +46,7 @@ private:
         // std::cout << "I'm in handle accept" << std::endl;
         if (!error)
         {
+            
             // std::cout << "did  something just happen?" << std::endl;
 
             chatter->run();
