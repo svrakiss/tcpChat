@@ -32,13 +32,12 @@ int main(int argc, char *argv[])
         {
             std::cout << "Please enter a user name:";
             std::getline(std::cin, userName);
-            if (std::strstr( userName.c_str(),KILL_WORD) != NULL)
+            if (std::strstr(userName.c_str(), KILL_WORD) != NULL)
             {
                 std::cout << "contains reserved word " << KILL_WORD << '\n';
                 flag = true;
             }
         } while (flag);
-        // Any program that uses asio need to have at least one io_service object
         boost::asio::io_service io_service;
 
         // Convert the server name that was specified as a parameter to the application, to a TCP endpoint.

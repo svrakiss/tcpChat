@@ -43,7 +43,7 @@ sockPtr Chatter::socket()
 {
     return mySock_;
 }
-boost::array<char, 256> &Chatter::getBuf()
+boost::array<char, BUF_SIZE> &Chatter::getBuf()
 {
     return buf;
 }
@@ -82,21 +82,18 @@ void Chatter::readHeader(const boost::system::error_code &error)
 }
 bool shouldIDie(char *data)
 {
-    return std::strstr(data,KILL_WORD) != NULL;
+    return std::strstr(data, KILL_WORD) != NULL;
 }
 void Chatter::read(const boost::system::error_code &error, std::size_t bytes_transferred)
 {
     // std::cout << "Hello from read" << std::endl;
-    // std::cout<<std::flush;
     // if (isendwin())
     // {
     //     endwin();
     // }
-    // std::cout<<"read: "<<header<<'\n';
     // std::cout << " bytes transferred" << bytes_transferred << '\n';
     // std::cout << "sizenow is "<<sizenow<<'\n';
     // refresh();
-    // getOut()<<"\n";
     if (error)
     {
         std::cout << "[reader] dying" << std::endl; // Connection closed cleanly by peer.
@@ -106,14 +103,14 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
     {
         ;
         auto jimmy = boost::array<char, BUF_SIZE>();
+        auto currentState="";
         strncpy(jimmy.data(), getBuf().data(), sizenow);
-        if (shouldIDie(jimmy.data())) die();
+        if (shouldIDie(jimmy.data()))
+            die();
+        
         printw(jimmy.data(), sizenow); // this copies the entire contents of the array, regardless of the amount entered
         addch('\n');
-        // std::cout.write(getBuf().data(), getMe()->sizenow);
-
-        // std::cout << '\n';
-        // readHeader(error)
+        refresh();
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
     }
@@ -161,15 +158,9 @@ void Chatter::write(const boost::system::error_code &error, size_t bytes_transfe
     else
 
     {
-        // std::vector<boost::asio::buffer> bv;
         writeQueue.pop_front();
         if (!writeQueue.empty())
-        { //const buffers are for sending, mutable buffers are for receiving
-            // std::vector<boost::asio::const_buffer> buffy = {boost::asio::buffer(writeQueue.front().getHeader()), boost::asio::buffer(writeQueue.front().getData())};
-            // std::cout << "sending size" << sizeof(buffy) << '\n';
-            // std::cout << "header says" << writeQueue.front().getHeader().c_array()[0] << '\n';
-            // std::cout << " size of header" << sizeof(boost::array<std::size_t, 3>) << std::endl;
-
+        {
             boost::asio::async_write(*socket(),
                                      boost::asio::buffer(writeQueue.front().getData(), writeQueue.front().getlength()),
                                      boost::bind(&Chatter::write, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
@@ -231,7 +222,8 @@ void Chatter::run()
             // }
             // // std::cout<<"read: "<<header<<'\n';
             // refresh();
-            if(shouldIDie(msg)) p2->die();
+            if (shouldIDie(msg))
+                p2->die();
             ChatMessage chat(msg, p2->userName);
             p2->addMessage(chat);
             p2->socket()->get_io_service().poll();
