@@ -104,7 +104,7 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
 
         // strncpy(jimmy.data(),getBuf().data(),sizenow);
 
-        printw(getBuf().data(), sizenow);
+        printw(getBuf().data(), bytes_transferred);
         // getstr
         addch('\n');
         // std::cout.write(getBuf().data(), getMe()->sizenow);
