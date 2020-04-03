@@ -168,13 +168,14 @@ void Chatter::run()
     boost::shared_ptr<Chatter> p2 = getMe();
     // boost::thread  t1, t2;
     // cout<<"i'm about to do some runnin"<<endl;
-    // boost::thread t1([p1]() {
+    boost::thread t1([p1]() {
     // while (true)
     // std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
     // cout <<"thread 1"<<endl;
     boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
                             boost::bind(&Chatter::readHeader, p1->shared_from_this(), boost::asio::placeholders::error));
-    // });
+                            p1->socket()->get_io_service().run();
+    });
     boost::thread t2([p2]() {
         std::string buffer;
         ;
@@ -187,6 +188,6 @@ void Chatter::run()
             p2->socket()->get_io_service().poll();
         }
     });
-    // t1.join();
+    t1.join();
     t2.join();
 }
