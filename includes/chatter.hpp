@@ -53,12 +53,12 @@ public:
         std::strncat(header, data, 4);
         //read string as int
         int msg_length = std::atoi(header);
-        if (isendwin())
-        {
-            endwin();
-        }
-        // std::cout<<"read: "<<header<<'\n';
-        std::cout << " Message header says length is " << msg_length << '\n';
+        // if (isendwin())
+        // {
+        //     endwin();
+        // }
+        // // std::cout<<"read: "<<header<<'\n';
+        // std::cout << " Message header says length is " << msg_length << '\n';
         refresh();
         if (msg_length > 256)
         {

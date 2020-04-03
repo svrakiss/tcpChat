@@ -99,7 +99,7 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         die();
     }
     else
-    {
+    {;
         // auto jimmy = boost::array<char, BUF_SIZE>();
 
         // strncpy(jimmy.data(),getBuf().data(),sizenow);
