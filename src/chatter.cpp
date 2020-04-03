@@ -107,10 +107,10 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         strncpy(jimmy.data(), getBuf().data(), sizenow);
         if (shouldIDie(jimmy.data()))
             die();
-        instr(currentState); // current text in terminal  
         int y, x,xx;                      // to store where you are
         getyx(stdscr, y, x);           // save current pos
         move(y, 0);                    // move to begining of line
+        instr(currentState); // current text in terminal  
         clrtoeol();                    // clear line
         printw(jimmy.data(), sizenow); // this copies the entire contents of the array, regardless of the amount entered
         addch('\n');
@@ -234,7 +234,7 @@ void Chatter::run()
             ChatMessage chat(msg, p2->userName);
             p2->addMessage(chat);
             p2->socket()->get_io_service().poll();
-            wrefresh(p2->window);
+            refresh();
         }
     });
     t1.join();
