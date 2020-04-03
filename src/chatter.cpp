@@ -82,7 +82,7 @@ void Chatter::readHeader(const boost::system::error_code &error)
 }
 bool shouldIDie(char *data)
 {
-    return std::strpbrk(KILL_WORD, data) != NULL;
+    return std::strstr(data,KILL_WORD) != NULL;
 }
 void Chatter::read(const boost::system::error_code &error, std::size_t bytes_transferred)
 {

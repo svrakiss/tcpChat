@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         {
             std::cout << "Please enter a user name:";
             std::getline(std::cin, userName);
-            if (std::strpbrk(KILL_WORD, userName.c_str()) != NULL)
+            if (std::strstr( userName.c_str(),KILL_WORD) != NULL)
             {
                 std::cout << "contains reserved word " << KILL_WORD << '\n';
                 flag = true;
