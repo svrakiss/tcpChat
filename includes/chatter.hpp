@@ -41,7 +41,7 @@ public:
                  if(isendwin()){
                 endwin();
             }
-            std::cout<<"read: "<<header<<'\n';
+            std::cout<<"read: "<<header<<std::endl;
         std::cout << "length is " << length() << '\n';
             refresh();
     }

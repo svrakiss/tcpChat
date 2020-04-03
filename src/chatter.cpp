@@ -187,7 +187,7 @@ auto setupNcurses()
     auto heya = initscr();
     // auto booya = newwin(200, 200, 200, 200);
     cbreak(); // one char at a time
-    scrollok(heya, true);
+    scrollok(heya, false);
     leaveok(heya, true);
     echo();
     keypad(stdscr, true);
@@ -201,7 +201,7 @@ void Chatter::run()
     boost::shared_ptr<Chatter> p1 = getMe();
     boost::shared_ptr<Chatter> p2 = getMe();
     window = setupNcurses(); //essentially a global variable
-
+;
     boost::thread t1([p1]() {
         // while (true)
         // std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
@@ -220,7 +220,7 @@ void Chatter::run()
             printw(buffer2.c_str());
             // std::cout << ++numstr;
             // wscanw(p2->window,buffer);
-            getstr(header);
+            getstr(header); // currently this triggers received messages to display
             // (std::cin, buffer);
             // if(isendwin()){
             //     endwin();
