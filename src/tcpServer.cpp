@@ -26,6 +26,11 @@ public:
     {
         std::cout << "Please enter a user name:";
         std::getline(std::cin, userName);
+        if(std::strpbrk(KILL_WORD,userName.c_str())!=NULL){
+            std::cout <<"contains reserved word "<<KILL_WORD<<'\n';
+            prompt();
+        }
+
     }
 
 private:

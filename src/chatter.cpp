@@ -80,6 +80,10 @@ void Chatter::readHeader(const boost::system::error_code &error)
         die();
     }
 }
+bool shouldIDie(char *data)
+{
+    return std::strpbrk(KILL_WORD, data) != NULL;
+}
 void Chatter::read(const boost::system::error_code &error, std::size_t bytes_transferred)
 {
     // std::cout << "Hello from read" << std::endl;
@@ -99,13 +103,12 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         die();
     }
     else
-    {;
+    {
+        ;
         auto jimmy = boost::array<char, BUF_SIZE>();
-
-        strncpy(jimmy.data(),getBuf().data(),sizenow);
-
-        printw(jimmy.data(), sizenow);
-        // getstr
+        strncpy(jimmy.data(), getBuf().data(), sizenow);
+        if (shouldIDie(jimmy.data())) die();
+        printw(jimmy.data(), sizenow); // this copies the entire contents of the array, regardless of the amount entered
         addch('\n');
         // std::cout.write(getBuf().data(), getMe()->sizenow);
 
@@ -201,7 +204,7 @@ void Chatter::run()
     boost::shared_ptr<Chatter> p1 = getMe();
     boost::shared_ptr<Chatter> p2 = getMe();
     window = setupNcurses(); //essentially a global variable
-;
+    ;
     boost::thread t1([p1]() {
         // while (true)
         // std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
@@ -209,25 +212,27 @@ void Chatter::run()
         boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, p1->shared_from_this(), boost::asio::placeholders::error));
         p1->socket()->get_io_service().run(); // this is so that reading is happening concurrently with writing to the terminal, at least
-    });;
+    });
+    ;
     boost::thread t2([p2]() {
         std::string buffer;
         std::string buffer2 = p2->userName + "> ";
         int numstr = 0;
-        char header[BUF_SIZE] = "";
+        char msg[BUF_SIZE] = "";
         while (true)
         {
             printw(buffer2.c_str());
             // std::cout << ++numstr;
             // wscanw(p2->window,buffer);
-            getstr(header); // currently this triggers received messages to display
+            getstr(msg); // currently this triggers received messages to display
             // (std::cin, buffer);
             // if(isendwin()){
             //     endwin();
             // }
             // // std::cout<<"read: "<<header<<'\n';
             // refresh();
-            ChatMessage chat(header, p2->userName);
+            if(shouldIDie(msg)) p2->die();
+            ChatMessage chat(msg, p2->userName);
             p2->addMessage(chat);
             p2->socket()->get_io_service().poll();
             wrefresh(p2->window);

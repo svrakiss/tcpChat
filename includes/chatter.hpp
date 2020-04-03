@@ -5,6 +5,7 @@
 #include <deque>
 #include <ncurses.h>
 using boost::asio::ip::tcp;
+#define KILL_WORD "seppuku"
 typedef boost::shared_ptr<tcp::socket> sockPtr;
 //In order to be able to consistently read a single message from the socket at a time, you need a header of set length that gives you info about the message.
 // Like, how many more bytes to read.
@@ -37,13 +38,13 @@ public:
     {
 
         bb = name + ">" + sentMsg;
-        std::sprintf(header, "%4ld", length());   
-            //      if(isendwin()){
-            //     endwin();
-            // }
-            // std::cout<<"read: "<<header<<std::endl;
+        std::sprintf(header, "%4ld", length());
+        //      if(isendwin()){
+        //     endwin();
+        // }
+        // std::cout<<"read: "<<header<<std::endl;
         // std::cout << "length is " << length() << '\n';
-            refresh();
+        refresh();
     }
 
     static int readHeader(char *data)
@@ -72,6 +73,8 @@ class Chatter : public boost::enable_shared_from_this<Chatter>
 {
 
 public:
+    // static const char *KILLWORD = KILL_WORD;
+
     typedef boost::shared_ptr<Chatter> pointer;
     static pointer create(boost::asio::io_service &);
 
