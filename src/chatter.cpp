@@ -107,10 +107,10 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         strncpy(jimmy.data(), getBuf().data(), sizenow);
         if (shouldIDie(jimmy.data()))
             die();
-        
+
         printw(jimmy.data(), sizenow); // this copies the entire contents of the array, regardless of the amount entered
         addch('\n');
-        refresh();
+        refresh(); //this makes it show up immediately
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
     }

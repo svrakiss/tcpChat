@@ -32,11 +32,14 @@ int main(int argc, char *argv[])
         {
             std::cout << "Please enter a user name:";
             std::getline(std::cin, userName);
-            if (std::strstr(userName.c_str(), KILL_WORD) != NULL)
+            if (std::strstr(userName.c_str(), KILL_WORD) != NULL || userName.empty())
             {
-                std::cout << "contains reserved word " << KILL_WORD << '\n';
+                std::cout << "contains reserved word " << KILL_WORD << " or is empty\n";
+
                 flag = true;
             }
+            else
+                break;
         } while (flag);
         boost::asio::io_service io_service;
 
