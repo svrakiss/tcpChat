@@ -30,12 +30,12 @@ Chatter::Chatter(sockPtr socket, std::string name) : mySock_(socket), userName(n
 Chatter::~Chatter() {}
 void Chatter::die()
 {
-    endwin();// exit ncurses
+    endwin(); // exit ncurses
     std::cout << "REALLY?" << std::endl;
     mySock_->close();
     // this_thread.interrupt();
     // boost::this_thread::yield();
-    
+
     mySock_->shutdown(tcp::socket::shutdown_both);
 }
 
@@ -48,7 +48,7 @@ boost::array<char, 256> &Chatter::getBuf()
     return buf;
 }
 boost::array<char, 5> &Chatter::getHeadBuf()
-{
+{;
     return headbuf;
 }
 void Chatter::readHeader(const boost::system::error_code &error)
@@ -61,6 +61,7 @@ void Chatter::readHeader(const boost::system::error_code &error)
         // std::cout << "message length" << msg_length << '\n';
         if (true) // time to read the full message
         {
+            ;
             boost::asio::async_read(*socket(), boost::asio::buffer(getBuf(), msg_length),
                                     boost::bind(&Chatter::read, getMe(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
         }
@@ -79,7 +80,14 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
 {
     // std::cout << "Hello from read" << std::endl;
     // std::cout<<std::flush;
-    // std::cout << " bytes transferred" << bytes_transferred << std::endl;
+    // if (isendwin())
+    // {
+    //     endwin();
+    // }
+    // std::cout<<"read: "<<header<<'\n';
+    // std::cout << " bytes transferred" << bytes_transferred << '\n';
+    // std::cout << "sizenow is "<<sizenow<<'\n';
+    // refresh();
     // getOut()<<"\n";
     if (error)
     {
@@ -88,14 +96,15 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
     }
     else
     {
-        auto jimmy =boost::array<char,BUF_SIZE>();
+        // auto jimmy = boost::array<char, BUF_SIZE>();
 
         // strncpy(jimmy.data(),getBuf().data(),sizenow);
-    
-        printw(getBuf().data(),sizenow);
+
+        printw(getBuf().data(), sizenow);
+        // getstr
         addch('\n');
         // std::cout.write(getBuf().data(), getMe()->sizenow);
-        
+
         // std::cout << '\n';
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),
                                 boost::bind(&Chatter::readHeader, getMe(), boost::asio::placeholders::error));
@@ -175,12 +184,12 @@ auto setupNcurses()
     auto heya = initscr();
     // auto booya = newwin(200, 200, 200, 200);
     cbreak(); // one char at a time
-    scrollok(heya,true);
-    leaveok(heya,true);
+    scrollok(heya, true);
+    leaveok(heya, true);
     echo();
-    keypad(stdscr,true);
-    refresh();// opens new window
-return heya;
+    keypad(stdscr, true);
+    refresh(); // opens new window
+    return heya;
 }
 
 void Chatter::run()
@@ -188,7 +197,7 @@ void Chatter::run()
     sayHello();
     boost::shared_ptr<Chatter> p1 = getMe();
     boost::shared_ptr<Chatter> p2 = getMe();
-    window =setupNcurses(); //essentially a global variable
+    window = setupNcurses(); //essentially a global variable
 
     boost::thread t1([p1]() {
         // while (true)
@@ -200,17 +209,25 @@ void Chatter::run()
     });
     boost::thread t2([p2]() {
         std::string buffer;
-        std::string buffer2=p2->userName+"> ";
-        
+        std::string buffer2 = p2->userName + "> ";
+        int numstr = 0;
+        char header[BUF_SIZE] = "";
         while (true)
         {
             printw(buffer2.c_str());
-            // std::cout <<  << ">";
-            wscanw(p2->window,buffer.c_str());
+            // std::cout << ++numstr;
+            // wscanw(p2->window,buffer);
+            getstr(header);
             // (std::cin, buffer);
-            ChatMessage chat(buffer, p2->userName);
+            // if(isendwin()){
+            //     endwin();
+            // }
+            // // std::cout<<"read: "<<header<<'\n';
+            // refresh();
+            ChatMessage chat(header, p2->userName);
             p2->addMessage(chat);
             p2->socket()->get_io_service().poll();
+            wrefresh(p2->window);
         }
     });
     t1.join();

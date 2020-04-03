@@ -36,9 +36,14 @@ public:
     ChatMessage(std::string buf, std::string uname) : sentMsg(buf), name(uname)
     {
 
-        std::sprintf(header, "%4ld", length());
-        // std::cout << "length is " << length() << '\n';
         bb = name + ">" + sentMsg;
+        std::sprintf(header, "%4ld", length());   
+        //          if(isendwin()){
+        //         endwin();
+        //     }
+        //     // std::cout<<"read: "<<header<<'\n';
+        // // std::cout << "length is " << length() << '\n';
+        //     refresh();
     }
 
     static int readHeader(char *data)
@@ -48,7 +53,13 @@ public:
         std::strncat(header, data, 4);
         //read string as int
         int msg_length = std::atoi(header);
+        // if (isendwin())
+        // {
+        //     endwin();
+        // }
+        // // std::cout<<"read: "<<header<<'\n';
         // std::cout << " Message header says length is " << msg_length << '\n';
+        // refresh();
         if (msg_length > 256)
         {
             // might get nonsense. ok probably will get nonsense
@@ -78,7 +89,7 @@ private:
     std::deque<ChatMessage> writeQueue;
     boost::array<char, 5> headbuf = {0};
     std::size_t sizenow = 0;
-    WINDOW* window=NULL;
+    WINDOW *window = NULL;
 
 public:
     Chatter(sockPtr, std::string);
