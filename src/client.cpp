@@ -27,8 +27,17 @@ int main(int argc, char *argv[])
             serv_port = argv[2];
         }
         std::string userName;
-        std::cout << "Please enter a user name:";
-        std::getline(std::cin,userName);
+        bool flag = false;
+        do
+        {
+            std::cout << "Please enter a user name:";
+            std::getline(std::cin, userName);
+            if (std::strpbrk(KILL_WORD, userName.c_str()) != NULL)
+            {
+                std::cout << "contains reserved word " << KILL_WORD << '\n';
+                flag = true;
+            }
+        } while (flag);
         // Any program that uses asio need to have at least one io_service object
         boost::asio::io_service io_service;
 
@@ -53,14 +62,12 @@ int main(int argc, char *argv[])
         boost::shared_ptr<tcp::socket> sharedSocket(new tcp::socket(io_service));
         boost::asio::connect(*(sharedSocket.get()), endpoint_iterator);
         // The connection is open. All we need to do now is read the response.
-       
 
-        Chatter::pointer chtPtr=Chatter::create(sharedSocket,userName);
+        Chatter::pointer chtPtr = Chatter::create(sharedSocket, userName);
         chtPtr->run();
         // VERY IMPORTANTvvvv
-        boost::thread t(boost::bind(&boost::asio::io_service::run,&io_service));
+        boost::thread t(boost::bind(&boost::asio::io_service::run, &io_service));
         t.join();
-
     }
     // handle any exceptions that may have been thrown.
     catch (std::exception &e)
