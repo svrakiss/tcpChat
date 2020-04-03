@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include "chatter.hpp"
+#include <ncurses.h>
 
 #define BUF_SIZE 256
 using boost::thread;
@@ -84,7 +85,7 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         die();
     }
     else
-    {
+    { 
         std::cout.write(getBuf().data(), getMe()->sizenow);
         std::cout << '\n';
         boost::asio::async_read(*socket(), boost::asio::buffer(getHeadBuf(), ChatMessage::headerlength),

@@ -50,14 +50,10 @@ int main(int argc, char *argv[])
         // so we need to try each of them until we find one that works.
         // This keeps the Chatter program independent of a specific IP version.
         // The boost::asio::connect() function does this for us automatically.
-        // tcp::endpoint connectionEndpoint(endpoint_iterator->address(),argv[2])
         boost::shared_ptr<tcp::socket> sharedSocket(new tcp::socket(io_service));
         boost::asio::connect(*(sharedSocket.get()), endpoint_iterator);
-        // The connection is open. All we need to do now is read the response from the daytime service.
-
-        // We use a boost::array to hold the received data.
-        boost::system::error_code error;
-        
+        // The connection is open. All we need to do now is read the response.
+       
 
         Chatter::pointer chtPtr=Chatter::create(sharedSocket,userName);
         chtPtr->run();

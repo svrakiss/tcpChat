@@ -26,7 +26,6 @@ public:
     {
         std::cout << "Please enter a user name:";
         std::getline(std::cin, userName);
-        std::cout<<"Enter an optional port <default:" <<DEFAULT_PORT<<'\n';
     }
 
 private:
@@ -46,7 +45,7 @@ private:
         // std::cout << "I'm in handle accept" << std::endl;
         if (!error)
         {
-            
+
             // std::cout << "did  something just happen?" << std::endl;
 
             chatter->run();
@@ -57,10 +56,18 @@ private:
     }
     tcp::acceptor acceptor_;
 };
-int main()
+int main(int argc, char *argv[])
 {
+    unsigned short portno=DEFAULT_PORT;
+    if (argc != 2)
+    {
+        std::cout << "usage: <optional Port no.>" << '\n';
+        portno = DEFAULT_PORT;
+    }
+    else
+        portno = atoi(argv[1]);
     boost::asio::io_service io_service;
-    tcpServer tcpServer(io_service);
+    tcpServer tcpServer(io_service, portno);
     io_service.run();
     return 0;
 }
