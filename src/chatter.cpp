@@ -197,11 +197,18 @@ void Chatter::write(const boost::system::error_code &error, size_t bytes_transfe
 }
 void Chatter::sayHello()
 {
-    socket()->send(boost::asio::buffer(userName, sizeof(userName)));
-    std::size_t bytes = socket()->receive(boost::asio::buffer(getBuf()));
+    char header[5] = "";
+    std::sprintf(header, "%4ld", userName.size());
+    char data[BUF_SIZE] = "";
+    socket()->send(boost::asio::buffer(header + userName, (4 + sizeof(userName))));
+
+    std::size_t bytes1 = socket()->receive(boost::asio::buffer(getHeadBuf(), 4));
+    std::size_t msg_length = ChatMessage::readHeader(getHeadBuf().c_array());
+    // std::cout <<"length: "<<msg_length<<std::endl;
+    std::size_t bytes = boost::asio::read(*socket(), boost::asio::buffer(getBuf(), msg_length));
 
     std::cout << "Connected to " << socket()->remote_endpoint().address().to_string() << "  (";
-    std::cout.write(getBuf().data(), bytes);
+    std::cout.write(getBuf().data(), msg_length);
     std::cout << ")\n";
 }
 auto setupNcurses()
