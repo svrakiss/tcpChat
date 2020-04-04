@@ -5,11 +5,14 @@
 #include <boost/bind.hpp>
 #include "chatter.hpp"
 #include <ncurses.h>
-
+#include <shared_mutex>
+#include <mutex>
+#include <condition_variable>
 using boost::thread;
 using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> sockPtr;
-
+std::mutex m;
+std::condition_variable cv;
 Chatter::pointer Chatter::create(boost::asio::io_service &io_service, std::string userName)
 {
     return pointer(new Chatter(boost::shared_ptr<tcp::socket>(new tcp::socket(io_service)), userName));
@@ -29,6 +32,7 @@ Chatter::Chatter(sockPtr socket, std::string name) : mySock_(socket), userName(n
 Chatter::~Chatter() {}
 void Chatter::die()
 {
+    boost::this_thread::interruption_point();
     if (!isendwin()) // the first handler gets here
     {
         endwin(); // exit ncurses
@@ -43,13 +47,12 @@ void Chatter::die()
         // mySock_->shutdown(tcp::socket::shutdown_both);
         // this_thread.interrupt();
         // boost::this_thread::yield();
-
         std::cout << "someone left" << std::endl;
         //    throw_error(boost::asio::placeholders::error, "read");
     }
-    throw new std::exception;
-
-    // boost::this_thread::interruption_requested();
+    std::unique_lock<std::mutex> lk(m);
+    // std::notify_all_at_thread_exit(cv, std::move(lk));
+    // throw new std::exception;
 }
 
 sockPtr Chatter::socket()
@@ -97,6 +100,10 @@ bool shouldIDie(char *data)
 {
     return std::strstr(data, KILL_WORD) != NULL;
 }
+bool shouldIDie(char *data, sockPtr jj)
+{
+    return shouldIDie(data) || !(jj->is_open());
+}
 void Chatter::read(const boost::system::error_code &error, std::size_t bytes_transferred)
 {
     // std::cout << "Hello from read" << std::endl;
@@ -118,7 +125,7 @@ void Chatter::read(const boost::system::error_code &error, std::size_t bytes_tra
         auto jimmy = boost::array<char, BUF_SIZE>();
         char currentState[BUF_SIZE] = ""; // technically incorrect, but good enough
         strncpy(jimmy.data(), getBuf().data(), sizenow);
-        if (shouldIDie(jimmy.data()))
+        if (shouldIDie(jimmy.data(), socket()))
             die();
         int y, x, xx;                  // to store where you are
         getyx(stdscr, y, x);           // save current pos
@@ -213,18 +220,19 @@ void Chatter::run()
 {
     try
     {
-        tcp::socket::broadcast option(true);
+        // tcp::socket::broadcast option(true);
         // boost::asio::ip::multicast:: option2(true);
-        mySock_->set_option(option);
+        // mySock_->set_option(option);
         // mySock_->set_option();
 
-        // sayHello();
+        sayHello();
         boost::shared_ptr<Chatter> p1 = getMe();
         boost::shared_ptr<Chatter> p2 = getMe();
-        window = setupNcurses(); //essentially a global variable
         ;
+        window = setupNcurses(); //essentially a global variable
         boost::thread t1([p1]() {
             // while (true)
+            boost::this_thread::interruption_enabled();
             // std::cout << boost::this_thread::get_id() << " " + p1->userName << "\n";
             // cout <<"thread 1"<<endl;
             boost::asio::async_read(*p1->socket(), boost::asio::buffer(p1->getHeadBuf(), ChatMessage::headerlength),
@@ -246,11 +254,12 @@ void Chatter::run()
                 // }
                 // // std::cout<<"read: "<<header<<'\n';
                 // refresh();
-                if (shouldIDie(msg))
+                if (shouldIDie(msg, p2->socket()))
                 {
                     p2->die();
                     break;
                 }
+                boost::this_thread::interruption_point();
                 ChatMessage chat(msg, p2->userName);
 
                 p2->addMessage(chat);
@@ -258,8 +267,28 @@ void Chatter::run()
                 refresh();
             }
         });
+        // std::unique_lock<std::mutex> lk(m);
+        // cv.wait(lk, [&t1, &t2] {
+        //     // t1.interrupt();t2.interrupt();
+        //     return true; });
+        // {
+        //     if (t1.interruption_requested() || t2.interruption_requested())
+        //     {
+        //         std::cout << "i don't know what to sayiiii" << std::endl;
+
+        //         t1.interrupt();
+        //         t2.interrupt();
+        //         break;
+        //     }
+        // }
+        // std::cout << "i don't know what to say0" << std::endl;
         t1.join();
+        // std::cout << "i don't know what to say1" << std::endl;
+        // t2.interrupt();
         t2.join();
+        // std::cout << "i don't know what to say2" << std::endl;
+
+        socket()->get_io_service().stop();
     }
     catch (std::exception &error)
 
